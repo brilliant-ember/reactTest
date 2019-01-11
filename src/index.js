@@ -11,40 +11,18 @@ function Square(props) {
   }
   
   class Board extends React.Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            squares : Array(9).fill(null),
-            isXturn : true,
-        };
-    }
 
-    handleClick(i){
-        const newSquares = this.state.squares.slice(); //the slice creates a copy of the array rather than updating the original
-        if(this.state.isXturn){newSquares[i] = 'X'; this.setState({isXturn : false})}
-        else{newSquares[i] = 'O'; this.setState({isXturn : true})}
-        
-        this.setState({squares: newSquares})
-    }
     renderSquare(i) {
       return <Square 
-        value={this.state.squares[i]}
-        onClick={() => this.handleClick(i)}
+        value={this.props.squares[i]}
+        onClick={() => this.props.onClick(i)}
          />;
     }
   
     render() {
-        const winner = calculateWinner(this.state.squares);
-        let status;
-        if (winner) {
-          status = 'Winner: ' + winner;
-        } else {
-          status = 'Next player: ' + (this.state.isXturn ? 'X' : 'O');
-        }
-  
       return (
         <div>
-          <div className="status">{status}</div>
+          <div className="status">{}</div>
           <div className="board-row">
             {this.renderSquare(0)}
             {this.renderSquare(1)}
@@ -66,14 +44,54 @@ function Square(props) {
   }
   
   class Game extends React.Component {
+    constructor(props){
+      super(props);
+      this.state = {
+        gameHistory : [{
+          squares: Array(9).fill(null),
+        }],
+        isXturn :true,
+      };
+    }
+
+    handleClick(i){
+      const current = this.state.gameHistory[this.state.gameHistory.length - 1];
+      const newSquares = current.squares.slice(); //the slice creates a copy of the array rather than updating the original
+      if (calculateWinner(newSquares) || newSquares[i]) { //if there is a winner or the user clicks on squeare that aleady has an X or an O
+        return;
+      }
+   
+      if(this.state.isXturn){newSquares[i] = 'X'; this.setState({isXturn : false})}
+      else{newSquares[i] = 'O'; this.setState({isXturn : true})}
+      // this.setState.gameHistory.push
+      this.setState({
+        gameHistory: this.state.gameHistory.concat([{
+          squares: newSquares
+        }]),
+      });
+  }
+
     render() {
+      const gameHistory = this.state.gameHistory;
+      const current = gameHistory[gameHistory.length - 1];
+      const winner = calculateWinner(current.squares);
+
+      let status;
+      if (winner) {
+        status = 'Winner: ' + winner;
+      } else {
+        status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      }
       return (
         <div className="game">
           <div className="game-board">
-            <Board />
+          <Board
+            squares={current.squares}
+            onClick={(i) => this.handleClick(i)}
+          />
           </div>
           <div className="game-info">
-            <div>{/* status */}</div>
+            <div>{status}</div>
             <ol>{/* TODO */}</ol>
           </div>
         </div>
